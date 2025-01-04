@@ -1,8 +1,8 @@
-package apsystems2prom
+package main
 
 import (
-	main2 "apsystem2prom/cmd"
 	"context"
+	"errors"
 	"fmt"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"log"
@@ -13,7 +13,7 @@ import (
 )
 
 func main() {
-	env := main2.getEnv()
+	env := getEnv()
 	mux := http.NewServeMux()
 	mux.Handle("/metrics", promhttp.Handler())
 	server := &http.Server{
@@ -22,7 +22,7 @@ func main() {
 	}
 
 	go func() {
-		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			log.Fatalf("Error starting server: %v\n", err)
 		}
 	}()
@@ -32,7 +32,7 @@ func main() {
 
 	ctx, cancel := context.WithCancel(context.Background())
 
-	go main2.start(ctx, env)
+	go startScheduler(ctx, env)
 
 	<-stop
 	fmt.Println("\nShutting down server...")
@@ -41,7 +41,7 @@ func main() {
 	ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	if err := server.Shutdown(ctx); err != nil {
+	if err := server.Shutdown(ctx); err != nil { // stops the prom server
 		log.Printf("Error during server shutdown: %v\n", err)
 	} else {
 		log.Println("Server stopped cleanly")

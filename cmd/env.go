@@ -1,4 +1,4 @@
-package apsystems2prom
+package main
 
 import (
 	"log"
@@ -16,6 +16,7 @@ type environment struct {
 	username    string
 	systemId    string
 	ecuId       string
+	vid         string
 }
 
 func getEnv() environment {
@@ -63,6 +64,8 @@ func getEnv() environment {
 		log.Fatal("ECU_ID is required")
 	}
 
+	vid := os.Getenv("VID")
+
 	return environment{
 		port:        port,
 		tick:        tick,
@@ -72,5 +75,6 @@ func getEnv() environment {
 		username:    username,
 		systemId:    systemId,
 		ecuId:       ecuId,
+		vid:         vid,
 	}
 }
